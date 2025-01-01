@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PSD Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+      }
+      button {
+        margin: 10px 0;
+        padding: 10px 20px;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      li {
+        background: #fff;
+        padding: 10px;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>PSD Generator</h1>
+      <form id="image-form">
+        <input type="file" id="image-input" accept="image/*" multiple />
+        <button type="button" onclick="addImages()">Add Images</button>
+      </form>
+      <ul id="image-list"></ul>
+      <button onclick="generatePSD()">Generate PSD</button>
+    </div>
+
+    <script>
+      const imageList = document.getElementById("image-list");
+      const imageFiles = [];
+
+      function addImages() {
+        const input = document.getElementById("image-input");
+        const files = Array.from(input.files);
+        files.forEach((file) => {
+          imageFiles.push(file);
+
+          const listItem = document.createElement("li");
+          listItem.textContent = file.name;
+
+          const removeButton = document.createElement("button");
+          removeButton.textContent = "Remove";
+          removeButton.onclick = () => {
+            imageFiles.splice(imageFiles.indexOf(file), 1);
+            imageList.removeChild(listItem);
+          };
+
+          listItem.appendChild(removeButton);
+          imageList.appendChild(listItem);
+        });
+        input.value = ""; // Clear input
+      }
+
+      async function generatePSD() {
+        if (imageFiles.length === 0) {
+          alert("Please add images.");
+          return;
+        }
+
+        const formData = new FormData();
+        imageFiles.forEach((file) => formData.append("images", file));
+
+        const response = await fetch("http://localhost:3000/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "output.psd";
+          link.click();
+        } else {
+          alert("Error generating PSD");
+        }
+      }
+    </script>
+  </body>
+</html>
